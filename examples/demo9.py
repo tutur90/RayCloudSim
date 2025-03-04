@@ -71,7 +71,7 @@ def main():
     for i, task_info in data.iterrows():
         generated_time = task_info['GenerationTime']
         task = Task(task_id=task_info['TaskID'],
-                    task_size=task_info['TaskSize'],
+                    task_size=int(task_info['TaskSize']/2),
                     cycles_per_bit=task_info['CyclesPerBit'],
                     trans_bit_rate=task_info['TransBitRate'],
                     ddl=task_info['DDL'],

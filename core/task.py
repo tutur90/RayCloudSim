@@ -72,11 +72,11 @@ class Task:
         else:
             if node is None:
                 # Case 2: Re-activate task, end queuing
-                self.wait_time = (now - self.wait_time) + self.trans_time
+                self.wait_time = (now - self.wait_time)
                 self._post_allocate_dst()
             else:
                 # Case 3: Execute task immediately, without queuing
-                self.wait_time = self.trans_time
+                self.wait_time = 0
                 self._allocate_dst(node)
 
             # Estimated execution time based on task size and CPU frequency
