@@ -34,13 +34,29 @@ def create_env(config):
     env.refresh_rate = config["env"]["refresh_rate"]
     return env
 
+# Global statistics for different error types
+dup_task_id_error = []
+net_no_path_error = []
+isolated_wireless_node_error = []
+net_cong_error = []
+insufficient_buffer_error = []
+
+def error_handler(error: Exception):
+    """Customized error handler for different types of errors."""
+    errors = ['DuplicateTaskIdError', 'NetworkXNoPathError', 'IsolatedWirelessNode', 'NetCongestionError', 'InsufficientBufferError']
+    message = error.args[0][0]
+    if message in errors:
+        pass
+    else:
+        raise
+
 def main():
     # Define configuration dictionary (acting as a config file).
     config = {
         "env": {
             "dataset": "Pakistan",
             "flag": "Tuple30K",  # Can change to Tuple50K or Tuple100K if desired.
-            "refresh_rate": 0.001
+            "refresh_rate": 0.01
         },
         "policy": "DemoGreedy",
     }
@@ -91,12 +107,13 @@ def main():
                 break
 
             # Execute the simulation with error handler.
+            until += env.refresh_rate
             try:
                 env.run(until=until)
             except Exception as e:
-                pass
+                error_handler(e)
 
-            until += env.refresh_rate
+
 
     # Continue the simulation until the last task successes/fails.
     while env.task_count < launched_task_cnt:
@@ -113,15 +130,15 @@ def main():
 
 
     m1 = SuccessRate()
-    r1 = m1.eval(env.logger.task_info)
+    r1 = m1.eval(env.logger)
     logger.update_metric("SuccessRate", r1)
 
     m2 = AvgLatency()
-    r2 = m2.eval(env.logger.task_info)
+    r2 = m2.eval(env.logger)
     logger.update_metric("AvgLatency", r2)
     
     # avg energy per
-    logger.update_metric("AvgEnergy", env.avg_node_energy())
+    logger.update_metric("AvgPower", env.avg_node_power())
     env.close()
     
     # Stats Visualization

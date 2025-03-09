@@ -429,7 +429,7 @@ class Infrastructure(object):
         # the keyword [dis/latency/*other] is for the weight in
         # get_shortest_path/links
         self.graph.add_edge(link.src.name, link.dst.name, key=key, data=link,
-                            dis=link.dis, latency=link.base_latency)
+                            dis=link.dis, latency=link.base_latency, energy_coef=link.energy_coef)
 
     def remove_link(self, src_name: str, dst_name: str, key=None):
         """Remove a specific link between two nodes identified by their names.
@@ -451,6 +451,7 @@ class Infrastructure(object):
 
     def get_link(self, src_name: str, dst_name: str, key=0) -> Link:
         """Retrieve a specific link by the source and destination node names."""
+
         return self.graph.edges[src_name, dst_name, key]["data"]
 
     def get_nodes(self) -> Dict[str, Node]:

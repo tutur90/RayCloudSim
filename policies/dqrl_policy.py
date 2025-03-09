@@ -4,6 +4,9 @@ import torch.optim as optim
 import random
 from torch.distributions import Categorical  # (optional for epsilon random selection)
 
+from core.env import Env
+from core.task import Task
+
 class DQRLPolicy:
     def __init__(self, env, config):
         """
@@ -17,7 +20,8 @@ class DQRLPolicy:
         """
         self.env = env
         # Observation dimension: for instance, free CPU frequency per node plus additional info.
-        self.n_observations = 3 * len(env.scenario.get_nodes()) - 2
+        # self.n_observations = 2 * len(env.scenario.get_nodes()) + 2 * len(env.scenario.get_nodes()) - 2
+        self.n_observations = len(env.scenario.get_nodes())
         self.num_actions = len(env.scenario.node_id2name)
 
         # Retrieve configuration parameters.
@@ -40,16 +44,19 @@ class DQRLPolicy:
         # Replay buffer for transitions.
         self.replay_buffer = []
 
-    def _make_observation(self, env, task):
+    def _make_observation(self, env: Env, task: Task):
         """
         Returns a flat observation vector.
         For instance, returns free CPU frequency for each node combined with free bandwidth per link.
         """
         cpu_obs = [env.scenario.get_node(node_name).free_cpu_freq 
                    for node_name in env.scenario.get_nodes()]
+        buffer_obs = [env.scenario.get_node(node_name).buffer_free_size()
+                      for node_name in env.scenario.get_nodes()]
         bw_obs = [env.scenario.get_link(link_name[0], link_name[1]).free_bandwidth
                   for link_name in env.scenario.get_links()]
-        obs = cpu_obs + bw_obs
+
+        obs = cpu_obs
         return obs
 
     def act(self, env, task):

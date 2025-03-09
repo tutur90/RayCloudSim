@@ -80,6 +80,7 @@ def main():
     # Continue the simulation until the last task successes/fails.
     while env.task_count < launched_task_cnt:
         until += 1
+        print(env.task_count, launched_task_cnt)
         try:
             env.run(until=until)
         except Exception as e:
@@ -92,13 +93,13 @@ def main():
 
     print("-----------------------------------------------")
     m1 = SuccessRate()
-    r1 = m1.eval(env.logger.task_info)
+    r1 = m1.eval(env.logger)
     print(f"The success rate of all tasks: {r1:.4f}")
     print("-----------------------------------------------\n")
 
     print("-----------------------------------------------")
     m2 = AvgLatency()
-    r2 = m2.eval(env.logger.task_info)
+    r2 = m2.eval(env.logger)
     print(f"The average latency per task: {r2:.4f}")
 
     print(f"The average energy consumption per node: {env.avg_node_energy():.4f}")

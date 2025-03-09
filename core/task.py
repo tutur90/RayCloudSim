@@ -49,14 +49,13 @@ class Task:
         self.wait_time = -1
         self.exe_time = -1
 
-        self.exe_energy = -1  # Placeholder for energy
-        self.trans_energy = -1  # Placeholder for energy
+        self.exe_energy = -1  
+        self.trans_energy = -1
 
         self.src_name = src_name
         self.dst = None
         self.dst_id = None
         self.dst_name = None
-        self.link = None
 
         self.task_name = task_name
         self.exe_cnt = 0
@@ -65,12 +64,13 @@ class Task:
         """Return a string representation of the task."""
         return f"[{self.__class__.__name__}] ({self.task_id})"
 
-    def allocate(self, now: int, node: Optional[Node] = None, link: Optional[Link] = None, pre_allocate: bool = False) -> None:
+    def allocate(self, now: int, node: Optional[Node] = None, pre_allocate: bool = False) -> None:
         """Allocate the task to a node based on the current time."""
+
         if pre_allocate:
             # Case 1: Buffer task, begin queuing
             self.wait_time = now
-            self._pre_allocate_dst(node, link)
+            self._pre_allocate_dst(node)
         else:
             if node is None:
                 # Case 2: Re-activate task, end queuing
@@ -79,36 +79,32 @@ class Task:
             else:
                 # Case 3: Execute task immediately, without queuing
                 self.wait_time = self.trans_time
-                self._allocate_dst(node, link)
+                self._allocate_dst(node)
 
             # Estimated execution time based on task size and CPU frequency
             self.exe_time = (self.task_size * self.cycles_per_bit) / self.cpu_freq
             
             self.exe_energy = self.exe_time * (self.dst.exe_energy_coef-self.dst.idle_energy_coef)
 
-            self.trans_energy = link.energy_coef * self.task_size
+            
             
 
-            
-
-    def _allocate_dst(self, dst: Node, link: Link) -> None:
+    def _allocate_dst(self, dst: Node) -> None:
         """Attach the task to the destination node and allocate resources."""
         if self.dst is not None:
             raise ValueError(f"Cannot place {self} on {dst}: It is already placed on {self.dst}.")
         self.dst = dst
         self.dst_id = dst.node_id
         self.dst_name = dst.name
-        self.link = link
         self.dst.add_task(self)
 
-    def _pre_allocate_dst(self, dst: Node, link: Link) -> None:
+    def _pre_allocate_dst(self, dst: Node) -> None:
         """Pre-allocate the task to the destination node without resources."""
         if self.dst is not None:
             raise ValueError(f"Cannot place {self} on {dst}: It is already placed on {self.dst}.")
         self.dst = dst
         self.dst_id = dst.node_id
         self.dst_name = dst.name
-        self.link = link
 
     def _post_allocate_dst(self) -> None:
         """Allocate resources to the local-waiting task after queuing."""
@@ -122,6 +118,5 @@ class Task:
         self.dst = None
         self.dst_id = None
         self.dst_name = None
-        self.link = None
 
         self.exe_cnt += 1

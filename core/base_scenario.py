@@ -1,6 +1,6 @@
 import json
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Union, Tuple, List
+from typing import Optional, Union, Tuple, List, Dict, Union
 from core.infrastructure import Infrastructure, Link, DataFlow, Node, Location
 
 __all__ = ["BaseScenario"]
@@ -73,7 +73,8 @@ class BaseScenario(metaclass=ABCMeta):
             src_node_id, dst_node_id = edge_info['SrcNodeID'], edge_info['DstNodeID']
             base_latency = self.calculate_base_latency(edge_info, src_node_id, 
                                                        dst_node_id, nodes)
-            energy_coef = edge_info.get('EnergyCoef', 0.0)
+            energy_coef = self.calculate_energy_coef(edge_info, src_node_id,
+                                                     dst_node_id, nodes)
 
             if edge_info['EdgeType'] == 'SingleLink':
                 self.add_unilateral_link(
@@ -150,6 +151,24 @@ class BaseScenario(metaclass=ABCMeta):
     def node_energy(self, node_name: str) -> float:
         """Return the energy consumption of a specific node."""
         return self.get_node(node_name).energy_consumption
+    
+    def node_power(self, node_name: Optional[str] = None) -> Union[float , dict]:
+        """Return the power consumption of a specific node."""
+        if node_name:
+            return self.get_node(node_name).energy_consumption/self.get_node(node_name).clock
+        else:
+            return {node_name: node.energy_consumption/node.clock for node_name, node in self.get_nodes().items()}
+        
+    def avg_node_power(self, node_name_list: Optional[List[str]] = None) -> float:
+        """Calculate the average power consumption of specified nodes."""
+        if not node_name_list:
+            node_list = self.get_nodes().values()
+        else:
+            node_list = [self.get_node(node_name) for node_name in node_name_list]
+        
+        total_power = sum(node.energy_consumption/node.clock for node in node_list)
+        return total_power / len(node_list)
+        
 
     def get_node(self, name: str) -> Node:
         """Return the node by its name."""

@@ -166,7 +166,7 @@ class Logger:
                 writer.writeheader()
             writer.writerow(row)
 
-    def plot(self):
+    def plot(self, display=False):
         """
         Plots the logged metrics over epochs for each mode and metric. If the Epoch values
         are not numeric, the x-axis is set as the order of appearance.
@@ -210,7 +210,10 @@ class Logger:
         plt.tight_layout()
         plot_path = os.path.join(self.log_dir, "score_plot.png")
         plt.savefig(plot_path)
-        plt.show()
+        if display:
+            plt.show()
+        plt.close(fig)
+        
 
     def save_csv(self):
         """
