@@ -287,7 +287,7 @@ class Env:
 
             task.allocate(self.now)
             self.logger.log(f"Task {{{task.task_id}}} re-actives in Node {{{task.dst_name}}}, "
-                            f"waiting {{{(task.wait_time - task.trans_time):.{self.decimal_places}f}}}s")
+                            f"waiting {{{(task.wait_time):.{self.decimal_places}f}}}s")
         else:
             task.allocate(self.now, dst)
 

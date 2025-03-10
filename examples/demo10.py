@@ -36,10 +36,10 @@ def error_handler(error: Exception):
     else:
         raise
 
-def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1,0)):
+def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1e6, 1, 0.01)):
     """
     Run one simulation epoch over the provided task data.
-    lambda_ = (time, energy) if time is more important than energy, then lambda_ = (1, 0) and vice versa.
+    lambda_ = (fail, time, energy) if time is more important than energy, then lambda_ = (_, 1, 0) and vice versa.
 
     For each task:
       - Wait until the task's generation time.
@@ -65,8 +65,8 @@ def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1,0)):
         task = Task(task_id=task_info['TaskID'],
                     task_size=task_info['TaskSize'],
                     cycles_per_bit=task_info['CyclesPerBit'],
-                    trans_bit_rate=task_info['TransBitRate']*5,
-                    ddl=task_info['DDL'],
+                    trans_bit_rate=task_info['TransBitRate'],
+                    ddl=task_info['DDL']/10,
                     src_name='e0',
                     task_name=task_info['TaskName'])
 
@@ -77,7 +77,7 @@ def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1,0)):
             
             if env.now >= generated_time:
                 # Get action and current state from the policy.
-                action, state = policy.act(env, task)
+                action, state = policy.act(env, task, train=train)
                 dst_name = env.scenario.node_id2name[action]
                 env.process(task=task, dst_name=dst_name)
                 launched_task_cnt += 1
@@ -111,9 +111,9 @@ def run_epoch(config, policy, data: pd.DataFrame, train=True, lambda_=(1,0)):
                         total_time = task_trans_time + task_wait_time + task_exe_time
                         task_trans_energy, task_exe_energy = val[3]
                         total_energy = task_trans_energy + task_exe_energy
-                        reward = - ((lambda_[0] * total_time) + (lambda_[1] * total_energy))
+                        reward = - ((lambda_[1] * total_time) + (lambda_[2] * total_energy))
                     else:
-                        reward = -1e6
+                        reward = -lambda_[0]
                     policy.store_transition(state, action, reward, next_state, done)
                     del stored_transitions[task_id]
             # Update the policy every batch_size tasks during training.
@@ -161,10 +161,10 @@ def main():
         "training": {
         "num_epoch": 5,
         "batch_size": 256,
-        "lr": 1e-3,
-        "gamma": 0.1,
+        "lr": 2e-3,
+        "gamma": 0.2,
         "epsilon": 0.1,
-        "epsilon_decay": 0.98
+        "epsilon_decay": 0.96
         },
         
         "model": {
@@ -217,6 +217,8 @@ def main():
         logger.update_metric("AvgPower", env.avg_node_power())
         
         env.close()
+        
+        policy.epsilon *= config["training"]["epsilon_decay"]
 
     logger.plot()
     logger.save_csv()

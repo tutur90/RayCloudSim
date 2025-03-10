@@ -56,7 +56,7 @@ def main():
         "env": {
             "dataset": "Pakistan",
             "flag": "Tuple30K",  # Can change to Tuple50K or Tuple100K if desired.
-            "refresh_rate": 0.01
+            "refresh_rate": 0.001
         },
         "policy": "DemoGreedy",
     }
@@ -89,8 +89,8 @@ def main():
         task = Task(task_id=task_info['TaskID'],
                     task_size=task_info['TaskSize'],
                     cycles_per_bit=task_info['CyclesPerBit'],
-                    trans_bit_rate=task_info['TransBitRate']*5,
-                    ddl=task_info['DDL'],
+                    trans_bit_rate=task_info['TransBitRate'],
+                    ddl=task_info['DDL']/10,
                     src_name='e0',
                     task_name=task_info['TaskName'])
 

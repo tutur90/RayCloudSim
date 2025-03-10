@@ -20,8 +20,8 @@ class DQRLPolicy:
         """
         self.env = env
         # Observation dimension: for instance, free CPU frequency per node plus additional info.
-        # self.n_observations = 2 * len(env.scenario.get_nodes()) + 2 * len(env.scenario.get_nodes()) - 2
-        self.n_observations = len(env.scenario.get_nodes())
+        self.n_observations = 2 * len(env.scenario.get_nodes()) + 2 * len(env.scenario.get_nodes()) - 2
+        # self.n_observations = len(env.scenario.get_nodes())
         self.num_actions = len(env.scenario.node_id2name)
 
         # Retrieve configuration parameters.
@@ -36,7 +36,7 @@ class DQRLPolicy:
             nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, self.num_actions)
+            nn.Linear(hidden_size, self.num_actions),
         )
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = nn.MSELoss()
@@ -56,17 +56,17 @@ class DQRLPolicy:
         bw_obs = [env.scenario.get_link(link_name[0], link_name[1]).free_bandwidth
                   for link_name in env.scenario.get_links()]
 
-        obs = cpu_obs
+        obs = cpu_obs + buffer_obs + bw_obs
         return obs
 
-    def act(self, env, task):
+    def act(self, env, task, train=True):
         """
         Chooses an action using an ε-greedy strategy and records the current state.
         """
         state = self._make_observation(env, task)
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
         
-        if random.random() < self.epsilon:
+        if random.random() < self.epsilon and train:
             action = random.randrange(self.num_actions)
         else:
             with torch.no_grad():
