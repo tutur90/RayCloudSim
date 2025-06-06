@@ -62,7 +62,8 @@ def error_handler(error: Exception):
 def main():
     # Create the environment with the specified scenario and configuration files.
     scenario = Scenario(config_file="examples/scenarios/configs/config_3.json")
-    env = Env(scenario, config_file="core/configs/env_config_null.json", verbose=False  )
+    env = Env(scenario, config_file="core/configs/env_config_null.json")
+    
 
     # Load simulated tasks from the CSV dataset.
     data = pd.read_csv("examples/dataset/demo3_dataset.csv")

@@ -99,6 +99,7 @@ def main():
     n1_status = env.status(node_name='n1')
     link_n1_n2_status = env.status(link_args=('n1', 'n2'))
     init_status = env.status()
+    
 
     # Begin the simulation.
     until = 1
