@@ -21,6 +21,7 @@ def main():
     # Create the environment with the specified scenario and configuration files.
     scenario = Scenario(config_file="examples/scenarios/configs/config_1.json")
     env = Env(scenario, config_file="core/configs/env_config_null.json")
+    
 
     # Visualization: Display the topology of the environment.
     # vis_graph(env,

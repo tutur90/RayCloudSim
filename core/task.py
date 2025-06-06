@@ -1,7 +1,7 @@
 import math
 from typing import Optional
 
-from core.infrastructure import Node, Data, DataFlow
+from core.infrastructure import Node, Data, DataFlow, Link
 
 __all__ = ["Task"]
 
@@ -50,11 +50,13 @@ class Task:
         self.exe_time = -1
 
         self.exe_energy = -1  # Placeholder for energy
+        self.trans_energy = -1  # Placeholder for energy
 
         self.src_name = src_name
         self.dst = None
         self.dst_id = None
         self.dst_name = None
+        self.links_in_path = []
 
         self.task_name = task_name
         self.exe_cnt = 0
@@ -81,6 +83,12 @@ class Task:
 
             # Estimated execution time based on task size and CPU frequency
             self.exe_time = (self.task_size * self.cycles_per_bit) / self.cpu_freq
+            
+            self.exe_energy = self.exe_time * self.dst.exe_energy_coef * self.cpu_freq
+            # self.exe_energy = self.exe_time * self.dst.exe_energy_coef * self.cpu_freq ** 3  
+
+            # energy_coef =  0 for wireless transmission
+            self.trans_energy = self.task_size * sum([link.energy_coef if isinstance(link, Link) else 0 for link in self.links_in_path])
 
     def _allocate_dst(self, dst: Node) -> None:
         """Attach the task to the destination node and allocate resources."""
